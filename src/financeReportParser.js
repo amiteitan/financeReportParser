@@ -71,15 +71,70 @@ if (typeof FRP.Parser.OtzahrHahayal == 'undefined') {
     };
 }
 
+function getText(html){
+    return html.substring(html.lastIndexOf(">")+1);
+}
+
 if (typeof FRP.Parser.Isracard == 'undefined') {
+    var isracardId = '<html xmlns:user="urn:user" xmlns:msxsl="urn:schemas-microsoft-com:xslt" xmlns:x="urn:schemas-microsoft-com:office:excel" id="HTML_ID"><HEAD><META CONTENT="text/html" HTTP-EQUIV="Content-Type" charset="iso-8859-8"></META><META CONTENT="no-cache" HTTP-EQUIV="Pragma"></META><META CONTENT="0" HTTP-EQUIV="expires"></META></HEAD><BODY LINK="#0000A4" TEXT="#000000" ALINK="#0000A4" BGCOLOR="#fefefe" VLINK="#0000A4" dir="rtl">';
     FRP.Parser.Isracard = {
-        id: "",
+        id: isracardId  ,
         valid: function (rawData) {
-            return  false;
+            if (this.id.substring(1,this.id.length) == rawData.substring(1,this.id.length))
+                {
+                return  true;
+            }
+            else {
+                return false;
+            }
 
         },
         parse: function (rawData) {
-            return "Parsed_By_Card";
+            var report = [];
+            var rawReport = rawData.split("</TR>");
+            var firsttime = true;
+            for (var i=4; i<rawReport.length; i++){
+                var rawEntry = rawReport[i].split("</TD>");
+                switch (rawEntry.length)
+                {
+                    case 7:
+                        //Israeli transactions
+                        var entry = new ReportEntry();
+                        entry.date = getText(rawEntry[0]);
+                        if (entry.date == "") break; //This line is just informative and will not help in out report.
+                        entry.name = getText(rawEntry[1]);
+                        // rawEntry[2]; //Total amount of the deal
+                        entry.debit = getText(rawEntry[3]);
+                        entry.credit = 0; //Not supported yet
+                        // rawEntry[4]; //Transaction id
+                        entry.description = getText(rawEntry[5]);
+                        report.push(entry);
+                        break;
+                    case 10:
+                        //International Transactions
+                        if (firsttime) { firsttime=false; break;} //skip international deal headers
+                        var entry = new ReportEntry();
+                        entry.date = getText(rawEntry[0]);
+                        if (entry.date == "") break; //This line is just informative and will not help in out report.
+                        // rawEntry[1]; //Date of buying
+                        entry.name = getText(rawEntry[2]);
+                        // rawEntry[3]; //City code
+                        // rawEntry[4]; //Original currency
+                        entry.debit = getText(rawEntry[5]);
+                        entry.credit = 0; //Not supported yet
+                        // rawEntry[6]; //Currency to bill
+                        // rawEntry[7]; //Total in the [6] currency
+                        // rawEntry[8]; //Transaction id
+                        entry.description = ""; //No description in international deals
+                        report.push(entry);
+                        break;
+                    default:
+                        break;
+                }
+
+                }
+            return report;
+
         }
     }
 }
