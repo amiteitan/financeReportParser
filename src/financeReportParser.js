@@ -26,7 +26,12 @@ function ReportEntry(){
     this.description = "";
 }
 
-
+function textToFloat(text) {
+    var tempNum = text.split(',');
+    tempNum = parseFloat(tempNum[0] + tempNum[1]);
+    if (isNaN(tempNum)) tempNum =0;
+    return  tempNum;
+}
 
 if (typeof FRP.Parser == 'undefined')
     FRP.Parser = {};
@@ -52,10 +57,11 @@ if (typeof FRP.Parser.OtzahrHahayal == 'undefined') {
                     }else{
                         MissingTotal = 1;
                     }
-
+                    var credit = (rawEntry[2-MissingTotal]);
+                    var debit = (rawEntry[3-MissingTotal]);
                     //rawEntry[1-MissingTotal]; //Value date - not used in our reports
-                    entry.credit = rawEntry[2-MissingTotal];
-                    entry.debit = rawEntry[3-MissingTotal];
+                    entry.credit = textToFloat(credit);
+                    entry.debit = textToFloat(debit);
                     entry.name = rawEntry[4-MissingTotal];
                     //rawEntry[5-MissingTotal]; //Reference - not used in our reports
                     //rawEntry[6-MissingTotal]; //Action type - not used in our reports
@@ -74,6 +80,8 @@ if (typeof FRP.Parser.OtzahrHahayal == 'undefined') {
 function getText(html){
     return html.substring(html.lastIndexOf(">")+1);
 }
+
+
 
 if (typeof FRP.Parser.Isracard == 'undefined') {
     var isracardId = '<html xmlns:user="urn:user" xmlns:msxsl="urn:schemas-microsoft-com:xslt" xmlns:x="urn:schemas-microsoft-com:office:excel" id="HTML_ID"><HEAD><META CONTENT="text/html" HTTP-EQUIV="Content-Type" charset="iso-8859-8"></META><META CONTENT="no-cache" HTTP-EQUIV="Pragma"></META><META CONTENT="0" HTTP-EQUIV="expires"></META></HEAD><BODY LINK="#0000A4" TEXT="#000000" ALINK="#0000A4" BGCOLOR="#fefefe" VLINK="#0000A4" dir="rtl">';
@@ -104,15 +112,16 @@ if (typeof FRP.Parser.Isracard == 'undefined') {
                         if (entry.date == "") break; //This line is just informative and will not help in out report.
                         entry.name = getText(rawEntry[1]);
                         // rawEntry[2]; //Total amount of the deal
-                        entry.debit = getText(rawEntry[3]);
-                        entry.credit = 0; //Not supported yet
+                        var tempMoney = textToFloat(getText(rawEntry[3]));
+                        entry.debit = tempMoney > 0 ? tempMoney : 0;
+                        entry.credit = tempMoney < 0 ? (tempMoney*(-1)) : 0;
                         // rawEntry[4]; //Transaction id
                         entry.description = getText(rawEntry[5]);
                         report.push(entry);
                         break;
                     case 10:
                         //International Transactions
-                        if (firsttime) { firsttime=false; break;} //skip international deal headers
+                        if (firsttime) { firsttime=false;  break;} //skip international deal headers
                         var entry = new ReportEntry();
                         entry.date = getText(rawEntry[0]);
                         if (entry.date == "") break; //This line is just informative and will not help in out report.
@@ -120,8 +129,9 @@ if (typeof FRP.Parser.Isracard == 'undefined') {
                         entry.name = getText(rawEntry[2]);
                         // rawEntry[3]; //City code
                         // rawEntry[4]; //Original currency
-                        entry.debit = getText(rawEntry[5]);
-                        entry.credit = 0; //Not supported yet
+                        var tempMoney = textToFloat(getText(rawEntry[5]));
+                        entry.debit = tempMoney > 0 ? tempMoney : 0;
+                        entry.credit = tempMoney < 0 ? (tempMoney*(-1)) : 0;
                         // rawEntry[6]; //Currency to bill
                         // rawEntry[7]; //Total in the [6] currency
                         // rawEntry[8]; //Transaction id
