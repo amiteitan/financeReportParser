@@ -32,6 +32,12 @@ function textToFloat(text) {
     if (isNaN(tempNum)) tempNum =0;
     return  tempNum;
 }
+function textToDate(text) {
+    //Parse the format DD/MM/YYYY
+    var da = text.split("/");
+    if (da.length != 3) return undefined;
+    return new Date(da[2],da[1]-1,da[0]);
+}
 
 if (typeof FRP.Parser == 'undefined')
     FRP.Parser = {};
@@ -65,7 +71,7 @@ if (typeof FRP.Parser.OtzahrHahayal == 'undefined') {
                     entry.name = rawEntry[4-MissingTotal];
                     //rawEntry[5-MissingTotal]; //Reference - not used in our reports
                     //rawEntry[6-MissingTotal]; //Action type - not used in our reports
-                    entry.date = rawEntry[7-MissingTotal];
+                    entry.date = textToDate(rawEntry[7-MissingTotal]);
 
                     entry.description = ""; //Bank report does not have detailed description
 
@@ -108,8 +114,8 @@ if (typeof FRP.Parser.Isracard == 'undefined') {
                     case 7:
                         //Israeli transactions
                         var entry = new ReportEntry();
-                        entry.date = getText(rawEntry[0]);
-                        if (entry.date == "") break; //This line is just informative and will not help in out report.
+                        entry.date = textToDate(getText(rawEntry[0]));
+                        if (entry.date == undefined) break; //This line is just informative and will not help in out report.
                         entry.name = getText(rawEntry[1]);
                         // rawEntry[2]; //Total amount of the deal
                         var tempMoney = textToFloat(getText(rawEntry[3]));
@@ -123,8 +129,8 @@ if (typeof FRP.Parser.Isracard == 'undefined') {
                         //International Transactions
                         if (firsttime) { firsttime=false;  break;} //skip international deal headers
                         var entry = new ReportEntry();
-                        entry.date = getText(rawEntry[0]);
-                        if (entry.date == "") break; //This line is just informative and will not help in out report.
+                        entry.date = textToDate(getText(rawEntry[0]));
+                        if (entry.date == undefined) break; //This line is just informative and will not help in out report.
                         // rawEntry[1]; //Date of buying
                         entry.name = getText(rawEntry[2]);
                         // rawEntry[3]; //City code
