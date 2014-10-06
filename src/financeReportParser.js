@@ -3,7 +3,6 @@ if (typeof FRP == 'undefined')
 
 (function(){
     this.test = "Test";
-    this.parsers = [];
     this.parse = function(rawData){
         for(var index in FRP.Parser) {
             if (FRP.Parser.hasOwnProperty(index)) {
@@ -18,7 +17,7 @@ if (typeof FRP == 'undefined')
 
 
 function ReportEntry(){
-    this.date = new Date();
+    this.date = new Date().getTime();
     this.name ="";
     this.debit = 0;
     this.credit = 0;
@@ -36,7 +35,7 @@ function textToDate(text) {
     //Parse the format DD/MM/YYYY
     var da = text.split("/");
     if (da.length != 3) return undefined;
-    return new Date(da[2],da[1]-1,da[0]);
+    return new Date(da[2],da[1]-1,da[0]).getTime();
 }
 
 if (typeof FRP.Parser == 'undefined')
@@ -50,7 +49,7 @@ if (typeof FRP.Parser.OtzahrHahayal == 'undefined') {
         },
         parse: function (rawData) {
             var report = [];
-            rawReport = rawData.split('\n');
+            var rawReport = rawData.split('\n');
             for (var i=2; i<rawReport.length; i++)
             {
                 var rawEntry =  rawReport[i].split('\t');
@@ -94,17 +93,13 @@ if (typeof FRP.Parser.Isracard == 'undefined') {
     FRP.Parser.Isracard = {
         id: isracardId  ,
         valid: function (rawData) {
-            if (this.id.substring(1,this.id.length) == rawData.substring(1,this.id.length))
-                {
-                return  true;
-            }
-            else {
-                return false;
-            }
+            return this.id.substring(1, this.id.length) == rawData.substring(1, this.id.length);
 
         },
         parse: function (rawData) {
             var report = [];
+            var entry = {};
+            var tempMoney = 0;
             var rawReport = rawData.split("</TR>");
             var firsttime = true;
             for (var i=4; i<rawReport.length; i++){
@@ -113,12 +108,12 @@ if (typeof FRP.Parser.Isracard == 'undefined') {
                 {
                     case 7:
                         //Israeli transactions
-                        var entry = new ReportEntry();
+                        entry=  new ReportEntry();
                         entry.date = textToDate(getText(rawEntry[0]));
                         if (entry.date == undefined) break; //This line is just informative and will not help in out report.
                         entry.name = getText(rawEntry[1]);
                         // rawEntry[2]; //Total amount of the deal
-                        var tempMoney = textToFloat(getText(rawEntry[3]));
+                        tempMoney = textToFloat(getText(rawEntry[3]));
                         entry.debit = tempMoney > 0 ? tempMoney : 0;
                         entry.credit = tempMoney < 0 ? (tempMoney*(-1)) : 0;
                         // rawEntry[4]; //Transaction id
@@ -128,14 +123,13 @@ if (typeof FRP.Parser.Isracard == 'undefined') {
                     case 10:
                         //International Transactions
                         if (firsttime) { firsttime=false;  break;} //skip international deal headers
-                        var entry = new ReportEntry();
+                        entry = new ReportEntry();
                         entry.date = textToDate(getText(rawEntry[0]));
                         if (entry.date == undefined) break; //This line is just informative and will not help in out report.
                         // rawEntry[1]; //Date of buying
                         entry.name = getText(rawEntry[2]);
                         // rawEntry[3]; //City code
                         // rawEntry[4]; //Original currency
-                        var tempMoney = textToFloat(getText(rawEntry[5]));
                         entry.debit = tempMoney > 0 ? tempMoney : 0;
                         entry.credit = tempMoney < 0 ? (tempMoney*(-1)) : 0;
                         // rawEntry[6]; //Currency to bill
