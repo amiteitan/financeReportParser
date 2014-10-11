@@ -1,14 +1,14 @@
 
 var PARSER = PARSER || new FLIB("Operational");
 //Report entry class
-    function ReportEntry() {
+    var ReportEntry = function(){
         this.date = new Date().getTime();
         this.name = "";
         this.debit = 0;
         this.credit = 0;
         this.total = 0;
         this.description = "";
-    }
+    };
 
 
 
@@ -17,14 +17,14 @@ var PARSER = PARSER || new FLIB("Operational");
         tempNum = parseFloat(tempNum[0] + tempNum[1]);
         if (isNaN(tempNum)) tempNum = 0;
         return  tempNum;
-    }
+    };
 
     function textToDate(text) {
         //Parse the format DD/MM/YYYY
         var da = text.split("/");
         if (da.length != 3) return undefined;
         return new Date(da[2], da[1] - 1, da[0]).getTime();
-    }
+    };
 
     function FLIB(id) {
         var parsers = [];
@@ -41,7 +41,7 @@ var PARSER = PARSER || new FLIB("Operational");
             }
             return [];
         }
-    }
+    };
 
     var Parser = function (id, parser) {
         this.id = id;
@@ -49,7 +49,7 @@ var PARSER = PARSER || new FLIB("Operational");
             return (id.substring(0, id.length) === rawData.substring(0, id.length) );
         };
         this.parse = parser;
-    }
+    };
 
     var isracardId = '<html xmlns:user="urn:user" xmlns:msxsl="urn:schemas-microsoft-com:xslt" xmlns:x="urn:schemas-microsoft-com:office:excel" id="HTML_ID"><HEAD><META CONTENT="text/html" HTTP-EQUIV="Content-Type" charset="iso-8859-8"></META><META CONTENT="no-cache" HTTP-EQUIV="Pragma"></META><META CONTENT="0" HTTP-EQUIV="expires"></META></HEAD><BODY LINK="#0000A4" TEXT="#000000" ALINK="#0000A4" BGCOLOR="#fefefe" VLINK="#0000A4" dir="rtl">';
 
